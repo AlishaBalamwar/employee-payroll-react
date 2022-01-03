@@ -1,0 +1,21 @@
+import './App.css';
+import PayrollForm from './component/Payroll-form/Payroll-form';
+import{
+  BrowserRouter as Router, Switch, Route, Redirect
+} from 'react-router-dom';
+
+function App() {
+  return (
+    <div className="App">
+      <Router>
+        <Switch>
+          <Route exact path="">
+            <PayrollForm />
+          </Route>
+        </Switch>
+      </Router>
+    </div>
+  );
+}
+
+export default App;
