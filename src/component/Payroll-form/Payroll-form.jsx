@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import react, {useState} from 'react'
+import logo from '../../assets/images/logo.png';
 import profile1 from '../../assets/profile-images/Ellipse -3.png';
 import profile2 from '../../assets/profile-images/Ellipse 1.png';
 import profile3 from '../../assets/profile-images/Ellipse -8.png';
 import profile4 from '../../assets/profile-images/Ellipse -7.png';
 import './Payroll-form.scss'
-import logo from '../../assets/images/logo.png';
-import { useParams, Link, withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
+import EmployeeService from '../../services/employee-service';
 
-const Payrollform = (props) => {
+
+const PayrollForm = (props) =>{
     let initialValue = {
         name: '',
         profileArray: [
@@ -31,7 +33,7 @@ const Payrollform = (props) => {
         profileUrl: '',
         isUpdate: false,
         errors: {
-            deprtments: '',
+            departments: '',
             name: '',
             gender: '',
             salary: '',
@@ -46,7 +48,7 @@ const Payrollform = (props) => {
     }
 
     const onCheckChange = (name) => {
-        let index = formValue.departmentValues.indexOf(name);
+        let index = formValue.departmentValue.indexOf(name);
         let checkArray = [...formValue.departmentValue]
         if ( index > -1 )
             checkArray.splice(index, 1)
@@ -94,6 +96,26 @@ const Payrollform = (props) => {
 
     const save = async (event) => {
         event.preventDefault();
+        if(await validDate()){
+            console.log('error', formValue);
+            return;
+        }
+        let object = {
+            name: formValue.name,
+            departmentValue: formValue.departmentValue,
+            gender: formValue.gender,
+            salary: formValue.salary,
+            startDate: `${formValue.day} ${formValue.month} ${formValue.year}`,
+            notes: formValue.notes,
+            id: '',
+            profileUrl: formValue.profileUrl,
+        }
+        EmployeeService.addEmployee(object).then(data =>{
+            console.log("data added");
+            props.history.push('')
+        }).catch(err =>{
+            console.log("err while Add");
+        })
     }
 
     const reset = () => {
@@ -101,6 +123,7 @@ const Payrollform = (props) => {
 
         console.log(formValue);
     }
+
     return(
         <div className= "payroll-main">
             <header className=" header row center">
@@ -117,10 +140,10 @@ const Payrollform = (props) => {
                     <div className="form-head">Employee Payroll Form</div>
                     <div className="row">
                         <label className="label text" htmlFor="name">Name</label>
-                        <input className="input" type="text" id="name" value={formValue.name} onChange={changeValue} placeholder="Your name.." />
+                        <input className="input" type="text" id="name" name="name" value={formValue.name} onChange={changeValue} placeholder="Your name.." />
                     </div>
-                    <div className="error">{formValue.error.name}</div>
-                    
+                    <div className="error">{formValue.errors.name}</div>
+
                     <div className="row">
                         <label className="label text" htmlFor="profileUrl">Profile image</label>
                         <div className="profile-radio-button">
@@ -145,8 +168,8 @@ const Payrollform = (props) => {
                                 <img className="profile4" src={profile4} />
                             </label>
                         </div>
-                    </div>
-                    <div className="error">{formValue.error.profileUrl}</div>
+                    </div>    
+                    <div className="error">{formValue.errors.profileUrl}</div>
                     <div className="row">
                         <label className="label text" htmlFor="gender">Gender</label>
                         <div>
@@ -156,7 +179,8 @@ const Payrollform = (props) => {
                             <label className="text" htmlFor="female">female</label>
                         </div>
                     </div>
-                    <div className="error">{formValue.error.gender}</div>
+                    <div className="error">{formValue.errors.gender}</div>
+
                     <div className="row">
                         <label className="label text" htmlFor="department">Department</label>
                         <div>
@@ -169,12 +193,14 @@ const Payrollform = (props) => {
                             ))}
                         </div>
                     </div>
-                    <div className="error" >{formValue.error.department}</div>
+                    <div className="error" >{formValue.errors.departments}</div>
+
                     <div className="row">
                         <label className="label text" htmlFor="salary">Salary</label>
                         <input className="input" type="number" onChange={changeValue} id="salary" value={formValue.salary} name="salary" placeholder="Salary" />
                     </div>
-                    <div className="error">{formValue.error.salary}</div>
+                    <div className="error">{formValue.errors.salary}</div>
+
                     <div className="row"><label className="label text" htmlFor="startdate">Start Date</label></div>
                                 <div>
                                 <select onChange={changeValue} id="day" name="day"> 
@@ -231,12 +257,14 @@ const Payrollform = (props) => {
                                     <option value="2018">2018</option>
                                 </select>
                             </div>
-                    <div className="error">{formValue.error.startDate}</div>
+                    <div className="error">{formValue.errors.startDate}</div>
+
                     <div className="row">
                         <label className="label text" htmlFor="notes">Notes</label>
                         <textarea onChange={changeValue} id="notes" value={formValue.notes} className="input" name="notes" placeholder=""
                             style={{height: '100%'}}></textarea>
                     </div>
+
                     <div className="buttonParent">
                         <Link to="" className="resetButton button cancelButton">Cancel</Link>
                         <div className="submit-reset">
@@ -245,9 +273,8 @@ const Payrollform = (props) => {
                         </div>
                     </div>
                 </form>
-
             </div>
-        </div>
-    )
+        </div>        
+    ) 
 }
-export default withRouter(Payrollform);
+export default withRouter(PayrollForm);
