@@ -1,17 +1,18 @@
-import react, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import logo from '../../assets/images/logo.png';
 import profile1 from '../../assets/profile-images/Ellipse -3.png';
 import profile2 from '../../assets/profile-images/Ellipse 1.png';
 import profile3 from '../../assets/profile-images/Ellipse -8.png';
 import profile4 from '../../assets/profile-images/Ellipse -7.png';
 import './Payroll-form.scss'
-import { Link, withRouter } from 'react-router-dom';
+import { Link, withRouter, useParams } from 'react-router-dom';
 import EmployeeService from '../../services/employee-service';
 
 
 const PayrollForm = (props) =>{
     let initialValue = {
         name: '',
+        id:'',
         profileArray: [
             {url: '../../../assets/profile-images/Ellipse -3.png'},
             {url: '../../../assets/profile-images/Ellipse 1.png'},
@@ -25,11 +26,10 @@ const PayrollForm = (props) =>{
         gender: '',
         salary: '',
         day: '1',
-        month: 'Jan',
+        month: '01',
         year: '2021',
         startDate: '',
         notes: '',
-        id: '',
         profileUrl: '',
         isUpdate: false,
         errors: {
@@ -42,6 +42,24 @@ const PayrollForm = (props) =>{
         }
     }
     const [formValue, setForm] = useState(initialValue);
+    const setData = (obj) => {
+        console.log("object");
+        console.log(obj);
+        let array = obj.startDate.split("-");
+        console.log(array);
+        setForm({
+            ...formValue,
+            ...obj,
+            profileUrl: obj.profileUrl,
+            departmentValue: obj.departmentValue,
+            isUpdate: true,
+            day: array[2],
+            month: array[1],
+            year: array[0],
+        });
+    };
+
+    const {id} = useParams();
 
     const changeValue = (event) => {
         setForm({ ...formValue, [event.target.name]: event.target.value})
@@ -105,18 +123,36 @@ const PayrollForm = (props) =>{
             departmentValue: formValue.departmentValue,
             gender: formValue.gender,
             salary: formValue.salary,
-            startDate: `${formValue.day} ${formValue.month} ${formValue.year}`,
+            startDate: `2018-01-11T04:25:26.293Z`,
             notes: formValue.notes,
-            id: '',
             profileUrl: formValue.profileUrl,
+         }
+         if(id){
+             EmployeeService.updateEmployee(id, object).then((employee)=>{
+                 props.history.push('/')
+             }).catch(err=>{
+                 console.log("err in update save block")
+             })
+
+         }else{
+            EmployeeService.addEmployee(object).then(employee =>{
+                console.log("data added successfully");
+                props.history.push('/')
+            }).catch(err =>{
+                console.log("err while Add");
+            })
         }
-        EmployeeService.addEmployee(object).then(data =>{
-            console.log("data added");
-            props.history.push('')
-        }).catch(err =>{
-            console.log("err while Add");
-        })
     }
+
+    useEffect(() => {
+        EmployeeService.getEmployeeById(id).then((response) => {
+            console.log("in useeffect of payroll",response.data.data)
+            let obj=response.data.data;
+            setData(obj);
+        }).catch(err =>{
+            console.log(err)
+        })
+    }, [])
 
     const reset = () => {
         setForm({ ...initialValue, id: formValue.id, isUpdate: formValue.isUpdate});
@@ -126,7 +162,7 @@ const PayrollForm = (props) =>{
 
     return(
         <div className= "payroll-main">
-            <header className=" header row center">
+            <header className=" header">
                 <div className="logo">
                     <img src={logo} alt=""/>
                     <div>
@@ -148,24 +184,24 @@ const PayrollForm = (props) =>{
                         <label className="label text" htmlFor="profileUrl">Profile image</label>
                         <div className="profile-radio-button">
                             <label>
-                                <input type="radio" checked={formValue.profileUrl=='../../assets/profile-images/Ellipse -3.png'} name="profileUrl"
+                                <input type="radio" checked={formValue.profileUrl==='../../assets/profile-images/Ellipse -3.png'} name="profileUrl"
                                 value="../../assets/profile-images/Ellipse -3.png" onChange={changeValue} />
-                                <img className="profile1" src={profile1} />
+                                <img className="profile1" src={profile1} alt=""/>
                             </label>
                             <label>
-                                <input type="radio" checked={formValue.profileUrl=='../../assets/profile-images/Ellipse 1.png'} name="profileUrl"
+                                <input type="radio" checked={formValue.profileUrl==='../../assets/profile-images/Ellipse 1.png'} name="profileUrl"
                                 value="../../assets/profile-images/Ellipse 1.png" onChange={changeValue} />
-                                <img className="profile2" src={profile2} />
+                                <img className="profile2" src={profile2} alt="" />
                             </label>
                             <label>
-                                <input type="radio" checked={formValue.profileUrl=='../../assets/profile-images/Ellipse -8.png'} name="profileUrl"
+                                <input type="radio" checked={formValue.profileUrl==='../../assets/profile-images/Ellipse -8.png'} name="profileUrl"
                                 value="../../assets/profile-images/Ellipse -8.png" onChange={changeValue} />
-                                <img className="profile3" src={profile3} />
+                                <img className="profile3" src={profile3} alt="" />
                             </label>
                             <label>
-                                <input type="radio" checked={formValue.profileUrl=='../../assets/profile-images/Ellipse -7.png'} name="profileUrl"
+                                <input type="radio" checked={formValue.profileUrl==='../../assets/profile-images/Ellipse -7.png'} name="profileUrl"
                                 value="../../assets/profile-images/Ellipse -7.png" onChange={changeValue} />
-                                <img className="profile4" src={profile4} />
+                                <img className="profile4" src={profile4} alt="" />
                             </label>
                         </div>
                     </div>    
@@ -173,9 +209,9 @@ const PayrollForm = (props) =>{
                     <div className="row">
                         <label className="label text" htmlFor="gender">Gender</label>
                         <div>
-                            <input type="radio" id="male" onChange={changeValue} name="gender" value="male" />
+                            <input type="radio" id="male" checked={formValue.gender=="male"} onChange={changeValue} name="gender" value="male" />
                             <label className="text" htmlFor="male">Male</label>
-                            <input type="radio" id="female" onChange={changeValue} name="gender" value="female" />
+                            <input type="radio" id="female" checked={formValue.gender=="female"} onChange={changeValue} name="gender" value="female" />
                             <label className="text" htmlFor="female">female</label>
                         </div>
                     </div>
@@ -186,14 +222,14 @@ const PayrollForm = (props) =>{
                         <div>
                             {formValue.allDepartment.map(item => (
                                 <span key ={item}>
-                                    <input className="checkbox" type="checkbox" onChange={() => onCheckChange(item)} name={item}
-                                        defaultChecked={() => getChecked(item)} value={item} />
+                                    <input className="checkbox" type="checkbox"  onChange={() => onCheckChange(item)} name={item}
+                                        checked={getChecked(item)} value={item} />
                                     <label className="text" htmlFor={item}>{item}</label>
                                 </span>
                             ))}
                         </div>
                     </div>
-                    <div className="error" >{formValue.errors.departments}</div>
+                    <div className="error" >{formValue.errors.departmentValue}</div>
 
                     <div className="row">
                         <label className="label text" htmlFor="salary">Salary</label>
@@ -203,16 +239,17 @@ const PayrollForm = (props) =>{
 
                     <div className="row"><label className="label text" htmlFor="startdate">Start Date</label></div>
                                 <div>
-                                <select onChange={changeValue} id="day" name="day"> 
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                    <option value="6">6</option>
-                                    <option value="7">7</option>
-                                    <option value="8">8</option>
-                                    <option value="9">9</option>
+                                <select onChange={changeValue} id="day" name="day"
+                                value={formValue.day}> 
+                                    <option value="01">1</option>
+                                    <option value="02">2</option>
+                                    <option value="03">3</option>
+                                    <option value="04">4</option>
+                                    <option value="05">5</option>
+                                    <option value="06">6</option>
+                                    <option value="07">7</option>
+                                    <option value="08">8</option>
+                                    <option value="09">9</option>
                                     <option value="10">10</option>
                                     <option value="11">11</option>
                                     <option value="12">12</option>
@@ -236,21 +273,23 @@ const PayrollForm = (props) =>{
                                     <option value="30">30</option>
                                     <option value="31">31</option>
                                 </select>
-                                <select onChange={changeValue} id="month" name="month"> 
-                                    <option value="Jan">January</option>
-                                    <option value="Feb">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
-                                    <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
-                                    <option value="August">August</option>
-                                    <option value="September">September</option>
-                                    <option value="October">October</option>
-                                    <option value="November">November</option>
-                                    <option value="December">December</option>
+                                <select onChange={changeValue} id="month" name="month"
+                                value={formValue.month}> 
+                                    <option value="01">January</option>
+                                    <option value="02">February</option>
+                                    <option value="03">March</option>
+                                    <option value="04">April</option>
+                                    <option value="05">May</option>
+                                    <option value="06">June</option>
+                                    <option value="07">July</option>
+                                    <option value="08">August</option>
+                                    <option value="09">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
                                 </select>
-                                <select onChange={changeValue} id="Year" name="year"> 
+                                <select onChange={changeValue} id="Year" name="year"
+                                value={formValue.year}> 
                                     <option value="2021">2021</option>
                                     <option value="2020">2020</option>
                                     <option value="2019">2019</option>
